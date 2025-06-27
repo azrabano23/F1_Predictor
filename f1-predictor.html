@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 AI Race Predictor Pro - Austrian GP 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --f1-red: #e10600;
+            --f1-black: #15151e;
+            --f1-white: #ffffff;
+            --f1-gray: #38383f;
+            --bg-dark: #0a0a0f;
+            --card-bg: rgba(21, 21, 30, 0.95);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a8;
+            --accent-blue: #0090ff;
+            --accent-green: #00d464;
+            --accent-yellow: #ffd700;
+            --accent-silver: #c0c0c0;
+            --accent-bronze: #cd7f32;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f97316;
+            --mercedes-cyan: #00d2be;
+            --ferrari-red: #dc143c;
+            --mclaren-orange: #ff8700;
+            --redbull-blue: #0600ef;
+            --alpine-pink: #0090ff;
+            --aston-green: #006f62;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 48%, rgba(225, 6, 0, 0.02) 49%, rgba(225, 6, 0, 0.02) 51%, transparent 52%),
+                radial-gradient(circle at 20% 50%, rgba(225, 6, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 144, 255, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: gradientShift 25s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--f1-black) 0%, var(--f1-gray) 100%);
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--f1-red) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .race-info {
+            text-align: center;
+            flex: 1;
+        }
+
+        .race-info h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .race-info p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 212, 100, 0.1);
+            border: 1px solid rgba(0, 212, 100, 0.3);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 144, 255, 0.25);
+            border-color: rgba(0, 144, 255, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* 3D Track Visualization */
+        .track-3d-container {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(0, 144, 255, 0.05) 0%, rgba(0, 212, 100, 0.05) 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .track-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+        }
+
+        .track-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .track-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .track-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .track-btn:hover, .track-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        /* Enhanced podium */
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 2rem;
+            margin: 2rem 0;
+            min-height: 350px;
+        }
+
+        .podium-position {
+            text-align: center;
+            flex: 1;
+            max-width: 180px;
+            opacity: 0;
+            animation: slideUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        .podium-position:nth-child(1) { animation-delay: 0.3s; }
+        .podium-position:nth-child(2) { animation-delay: 0s; }
+        .podium-position:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .driver-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid transparent;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .driver-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--team-color);
+        }
+
+        .position-1 .driver-card {
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+            --team-color: var(--redbull-blue);
+        }
+
+        .position-2 .driver-card {
+            border-color: var(--accent-silver);
+            box-shadow: 0 0 30px rgba(192, 192, 192, 0.5);
+            --team-color: var(--mclaren-orange);
+        }
+
+        .position-3 .driver-card {
+            border-color: var(--accent-bronze);
+            box-shadow: 0 0 30px rgba(205, 127, 50, 0.5);
+            --team-color: var(--mclaren-orange);
+        }
+
+        .driver-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--team-color), rgba(255, 255, 255, 0.1));
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .driver-avatar::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .driver-name {
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .team-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .prediction-confidence {
+            font-size: 1rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-range {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .podium-stand {
+            height: var(--stand-height);
+            background: linear-gradient(180deg, var(--stand-color) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .position-1 {
+            --stand-height: 140px;
+            --stand-color: rgba(255, 215, 0, 0.4);
+        }
+
+        .position-2 {
+            --stand-height: 120px;
+            --stand-color: rgba(192, 192, 192, 0.4);
+        }
+
+        .position-3 {
+            --stand-height: 100px;
+            --stand-color: rgba(205, 127, 50, 0.4);
+        }
+
+        /* Grid layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Multi-Model Ensemble Display */
+        .model-ensemble {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .model-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .model-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .model-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .model-accuracy {
+            background: var(--accent-green);
+            color: var(--f1-black);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .model-prediction {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            transition: width 1.5s ease;
+            border-radius: 3px;
+            margin-top: 1rem;
+        }
+
+        /* Weather widget */
+        .weather-widget {
+            background: linear-gradient(135deg, rgba(0, 144, 255, 0.1) 0%, rgba(0, 144, 255, 0.05) 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+        }
+
+        .weather-details h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .weather-details p {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .rain-probability {
+            text-align: center;
+            background: rgba(0, 144, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 100px;
+        }
+
+        .rain-probability .percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        /* Performance metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.02);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Feature importance chart */
+        .feature-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .feature-bar {
+            position: relative;
+        }
+
+        .feature-name {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .bar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 35px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            border-radius: 8px;
+            transition: width 1.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+        }
+
+        .bar-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Custom features */
+        .feature-engineering {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .custom-feature {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .feature-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .feature-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .feature-slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .feature-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feature-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--accent-purple);
+        }
+
+        /* A/B Testing */
+        .ab-testing {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .test-variant {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.02) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .variant-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .variant-badge {
+            background: var(--accent-purple);
+            color: var(--text-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric .metric-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--accent-purple);
+        }
+
+        .metric .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(0, 144, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 144, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        /* Results table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .results-table th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .results-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .position-badge {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--f1-gray);
+            color: var(--text-primary);
+            text-align: center;
+            line-height: 35px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .position-badge.gold { background: var(--accent-yellow); color: var(--f1-black); }
+        .position-badge.silver { background: var(--accent-silver); color: var(--f1-black); }
+        .position-badge.bronze { background: var(--accent-bronze); color: var(--f1-black); }
+
+        .confidence-interval {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        /* Race simulation */
+        .race-simulation {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .race-track {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--f1-gray) 0%, var(--f1-white) 50%, var(--f1-gray) 100%);
+            transform: translateY(-50%);
+        }
+
+        .race-car {
+            position: absolute;
+            top: 50%;
+            width: 40px;
+            height: 20px;
+            border-radius: 10px;
+            transform: translateY(-50%);
+            transition: left 2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: var(--text-primary);
+        }
+
+        .car-1 { background: var(--redbull-blue); left: 5%; }
+        .car-2 { background: var(--mclaren-orange); left: 2%; }
+        .car-3 { background: var(--mclaren-orange); left: 0%; }
+
+        .simulation-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .sim-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-green);
+            color: var(--f1-black);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sim-btn:hover {
+            background: var(--accent-yellow);
+            transform: scale(1.05);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--f1-black);
+            flex-shrink: 0;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-engineering {
+                grid-template-columns: 1fr;
+            }
+            
+            .ab-testing {
+                grid-template-columns: 1fr;
+            }
+
+            .model-ensemble {
+                grid-template-columns: 1fr;
+            }
+
+            .podium-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+            }
+
+            .podium-position {
+                max-width: 250px;
+                width: 100%;
+            }
+
+            .podium-stand {
+                height: 60px !important;
+                font-size: 2.5rem !important;
+            }
+
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <div class="notification-icon">✓</div>
+            <div>
+                <div style="font-weight: 600;">Predictions Updated</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">Based on latest telemetry data</div>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1>F1 AI PREDICTOR PRO</h1>
+            </div>
+            <div class="race-info">
+                <h2>Austrian Grand Prix 2025</h2>
+                <p>Red Bull Ring • Sprint Weekend • Multi-Model Analysis</p>
+            </div>
+            <div class="live-status">
+                <div class="live-indicator"></div>
+                <span>LIVE Updates</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 3D Track Visualization -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🏁 3D Track Analysis - Red Bull Ring</h2>
+            </div>
+            <div class="track-3d-container">
+                <canvas id="trackCanvas" class="track-canvas"></canvas>
+                <div class="track-overlay">
+                    <h4>Prediction Hotspots</h4>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0;">
+                        🔴 High overtaking probability<br>
+                        🟡 Strategic DRS zones<br>
+                        🟢 Clean air advantage
+                    </div>
+                    <div class="track-controls">
+                        <button class="track-btn active" onclick="setTrackView('overview')">Overview</button>
+                        <button class="track-btn" onclick="setTrackView('sectors')">Sectors</button>
+                        <button class="track-btn" onclick="setTrackView('telemetry')">Telemetry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Podium with Driver Avatars -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🏆 AI Podium Predictions</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">Ensemble Model Consensus</div>
+            </div>
+            <div class="podium-container">
+                <div class="podium-position position-2">
+                    <div class="driver-card">
+                        <div class="driver-avatar">NOR</div>
+                        <div class="driver-name">Lando Norris</div>
+                        <div class="team-name">McLaren F1 Team</div>
+                        <div class="prediction-confidence">94.2% confidence</div>
+                        <div class="confidence-range">Range: 91.8% - 96.6%</div>
+                    </div>
+                    <div class="podium-stand">2</div>
+                </div>
+                <div class="podium-position position-1">
+                    <div class="driver-card">
+                        <div class="driver-avatar">VER</div>
+                        <div class="driver-name">Max Verstappen</div>
+                        <div class="team-name">Red Bull Racing</div>
+                        <div class="prediction-confidence">96.8% confidence</div>
+                        <div class="confidence-range">Range: 94.1% - 98.5%</div>
+                    </div>
+                    <div class="podium-stand">1</div>
+                </div>
+                <div class="podium-position position-3">
+                    <div class="driver-card">
+                        <div class="driver-avatar">PIA</div>
+                        <div class="driver-name">Oscar Piastri</div>
+                        <div class="team-name">McLaren F1 Team</div>
+                        <div class="prediction-confidence">91.5% confidence</div>
+                        <div class="confidence-range">Range: 88.2% - 94.8%</div>
+                    </div>
+                    <div class="podium-stand">3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-Model Ensemble Display -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🧠 Multi-Model Ensemble</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">4 AI Models Working Together</div>
+            </div>
+            <div class="model-ensemble">
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-name">XGBoost v2.0</div>
+                        <div class="model-accuracy">89.2%</div>
+                    </div>
+                    <div class="model-prediction">VER P1</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Gradient boosting with 500 trees</div>
+                    <div class="confidence-fill" style="width: 89%"></div>
+                </div>
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-name">Neural Network</div>
+                        <div class="model-accuracy">92.1%</div>
+                    </div>
+                    <div class="model-prediction">VER P1</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Deep learning with 6 hidden layers</div>
+                    <div class="confidence-fill" style="width: 92%"></div>
+                </div>
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-name">Random Forest</div>
+                        <div class="model-accuracy">86.7%</div>
+                    </div>
+                    <div class="model-prediction">NOR P1</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Ensemble of 1000 decision trees</div>
+                    <div class="confidence-fill" style="width: 87%"></div>
+                </div>
+                <div class="model-card">
+                    <div class="model-header">
+                        <div class="model-name">SVM Classifier</div>
+                        <div class="model-accuracy">84.3%</div>
+                    </div>
+                    <div class="model-prediction">VER P1</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Support Vector Machine with RBF kernel</div>
+                    <div class="confidence-fill" style="width: 84%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Weather & Track Conditions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🌤️ Track Conditions</h2>
+                </div>
+                <div class="weather-widget">
+                    <div class="weather-icon">☀️</div>
+                    <div class="weather-details">
+                        <h3>23°C</h3>
+                        <p>Partly Cloudy • Light Wind</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Track Temp: 42°C • Humidity: 58%</p>
+                    </div>
+                    <div class="rain-probability">
+                        <div class="percentage">15%</div>
+                        <p>Rain Chance</p>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-blue);">Condition Impact Analysis</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="text-align: center; padding: 0.75rem; background: rgba(0, 144, 255, 0.1); border-radius: 8px;">
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-green);">+0.2s</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Optimal Temp</div>
+                        </div>
+                        <div style="text-align: center; padding: 0.75rem; background: rgba(0, 144, 255, 0.1); border-radius: 8px;">
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-yellow);">-0.1s</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Wind Effect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Performance Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Model Performance</h2>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">2.41s</div>
+                        <div class="metric-label">Mean Error</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">89%</div>
+                        <div class="metric-label">Accuracy</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">500</div>
+                        <div class="metric-label">Trees</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.7</div>
+                        <div class="metric-label">Learning Rate</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-purple);">Historical Performance</h4>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.9rem;">Last 5 Races</span>
+                        <span style="color: var(--accent-green); font-weight: 600;">87.2% avg</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 87%; height: 100%; background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Race Simulation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏎️ Live Race Simulation</h2>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Watch AI predictions unfold</div>
+                </div>
+                <div class="race-simulation">
+                    <div class="race-track"></div>
+                    <div class="race-car car-1">VER</div>
+                    <div class="race-car car-2">NOR</div>
+                    <div class="race-car car-3">PIA</div>
+                    <div class="simulation-controls">
+                        <button class="sim-btn" onclick="startRaceSimulation()">▶ Start</button>
+                        <button class="sim-btn" onclick="resetRaceSimulation()">⏹ Reset</button>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    Simulation shows predicted race progression based on qualifying positions, weather conditions, and historical performance data.
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Importance Visualization -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🔍 Feature Importance Analysis</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">How each factor influences predictions</div>
+            </div>
+            <div class="feature-bars">
+                <div class="feature-bar">
+                    <div class="feature-name">Clean Air Race Pace</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: 95%">
+                            <span class="bar-value">95%</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Historical average lap times in traffic-free conditions
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-name">Qualifying Performance</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: 82%">
+                            <span class="bar-value">82%</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Grid position advantage and one-lap pace
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-name">Team Performance Score</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: 68%">
+                            <span class="bar-value">68%</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Constructor standings and recent form
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-name">Weather Conditions</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: 45%">
+                            <span class="bar-value">45%</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Rain probability and temperature effects
+                    </div>
+                </div>
+                <div class="feature-bar">
+                    <div class="feature-name">Track Temperature</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: 38%">
+                            <span class="bar-value">38%</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        Surface temperature impact on tire performance
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Feature Engineering Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">⚙️ Advanced Feature Engineering</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">Create custom features to improve predictions</div>
+            </div>
+            <div class="feature-engineering">
+                <div class="custom-feature">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-purple);">Tire Strategy Features</h4>
+                    <div class="feature-input">
+                        <label class="feature-label">Tire Age (laps)</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="0" max="50" value="15" id="tire-age">
+                            <span class="feature-value" id="tire-age-value">15</span>
+                        </div>
+                    </div>
+                    <div class="feature-input">
+                        <label class="feature-label">Compound Hardness</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="1" max="5" value="3" id="tire-compound">
+                            <span class="feature-value" id="tire-compound-value">Medium</span>
+                        </div>
+                    </div>
+                    <div class="feature-input">
+                        <label class="feature-label">Degradation Rate (%/lap)</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="0" max="5" value="2.1" step="0.1" id="degradation">
+                            <span class="feature-value" id="degradation-value">2.1%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="custom-feature">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-purple);">Environmental Features</h4>
+                    <div class="feature-input">
+                        <label class="feature-label">Track Evolution</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="0" max="100" value="75" id="track-evolution">
+                            <span class="feature-value" id="track-evolution-value">75%</span>
+                        </div>
+                    </div>
+                    <div class="feature-input">
+                        <label class="feature-label">Fuel Load (kg)</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="100" max="140" value="110" id="fuel-load">
+                            <span class="feature-value" id="fuel-load-value">110kg</span>
+                        </div>
+                    </div>
+                    <div class="feature-input">
+                        <label class="feature-label">DRS Effectiveness</label>
+                        <div class="feature-control">
+                            <input type="range" class="feature-slider" min="0" max="100" value="85" id="drs-effect">
+                            <span class="feature-value" id="drs-effect-value">85%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn btn-primary" onclick="applyCustomFeatures()">Apply Custom Features</button>
+                <button class="btn btn-secondary" onclick="resetCustomFeatures()">Reset to Default</button>
+            </div>
+        </div>
+
+        <!-- A/B Testing Framework -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🧪 A/B Testing Framework</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">Compare different model versions</div>
+            </div>
+            <div class="ab-testing">
+                <div class="test-variant">
+                    <div class="variant-header">
+                        <h4>Model A: Conservative</h4>
+                        <div class="variant-badge">Current</div>
+                    </div>
+                    <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        Emphasizes historical data and proven performance patterns. Lower risk predictions.
+                    </div>
+                    <div class="performance-metrics">
+                        <div class="metric">
+                            <div class="metric-value">87.3%</div>
+                            <div class="metric-label">Accuracy</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">2.1s</div>
+                            <div class="metric-label">Avg Error</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">94.2%</div>
+                            <div class="metric-label">Podium Acc</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                        <strong>Top 3:</strong> VER, NOR, PIA
+                    </div>
+                </div>
+                
+                <div class="test-variant">
+                    <div class="variant-header">
+                        <h4>Model B: Aggressive</h4>
+                        <div class="variant-badge" style="background: var(--accent-orange);">Testing</div>
+                    </div>
+                    <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        Weights recent form and real-time telemetry heavily. Higher variance predictions.
+                    </div>
+                    <div class="performance-metrics">
+                        <div class="metric">
+                            <div class="metric-value">89.7%</div>
+                            <div class="metric-label">Accuracy</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">1.8s</div>
+                            <div class="metric-label">Avg Error</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">91.8%</div>
+                            <div class="metric-label">Podium Acc</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 8px;">
+                        <strong>Top 3:</strong> VER, LEC, NOR
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+                <button class="btn btn-primary" onclick="switchToModelB()">Switch to Model B</button>
+                <button class="btn btn-secondary" onclick="runABTest()">Run A/B Test</button>
+                <div style="margin-left: auto; font-size: 0.9rem; color: var(--text-secondary);">
+                    Test results will be available after qualifying
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Full Predictions Table with Confidence Intervals -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📊 Complete Race Predictions</h2>
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">With confidence intervals and ensemble consensus</div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Driver</th>
+                            <th>Team</th>
+                            <th>Predicted Time</th>
+                            <th>Confidence Interval</th>
+                            <th class="hide-mobile">Ensemble Score</th>
+                            <th class="hide-mobile">Quali Pos</th>
+                            <th class="hide-mobile">Risk Factor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="position-badge gold">1</span></td>
+                            <td><strong>VER</strong></td>
+                            <td>Red Bull Racing</td>
+                            <td>93.191s</td>
+                            <td>92.8s - 93.6s<span class="confidence-interval">±0.4s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-green);">96.8%</span></td>
+                            <td class="hide-mobile">P1</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-green);">Low</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge silver">2</span></td>
+                            <td><strong>NOR</strong></td>
+                            <td>McLaren F1 Team</td>
+                            <td>93.429s</td>
+                            <td>93.1s - 93.8s<span class="confidence-interval">±0.35s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-green);">94.2%</span></td>
+                            <td class="hide-mobile">P2</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-green);">Low</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge bronze">3</span></td>
+                            <td><strong>PIA</strong></td>
+                            <td>McLaren F1 Team</td>
+                            <td>93.532s</td>
+                            <td>93.1s - 94.0s<span class="confidence-interval">±0.45s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-green);">91.5%</span></td>
+                            <td class="hide-mobile">P3</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">4</span></td>
+                            <td><strong>LEC</strong></td>
+                            <td>Scuderia Ferrari</td>
+                            <td>93.719s</td>
+                            <td>93.3s - 94.2s<span class="confidence-interval">±0.45s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">88.3%</span></td>
+                            <td class="hide-mobile">P7</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">5</span></td>
+                            <td><strong>RUS</strong></td>
+                            <td>Mercedes-AMG F1</td>
+                            <td>93.933s</td>
+                            <td>93.5s - 94.4s<span class="confidence-interval">±0.45s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">86.7%</span></td>
+                            <td class="hide-mobile">P4</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">6</span></td>
+                            <td><strong>HAM</strong></td>
+                            <td>Mercedes-AMG F1</td>
+                            <td>94.121s</td>
+                            <td>93.7s - 94.6s<span class="confidence-interval">±0.45s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">84.1%</span></td>
+                            <td class="hide-mobile">P9</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">High</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">7</span></td>
+                            <td><strong>SAI</strong></td>
+                            <td>Scuderia Ferrari</td>
+                            <td>94.297s</td>
+                            <td>93.8s - 94.8s<span class="confidence-interval">±0.5s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">82.5%</span></td>
+                            <td class="hide-mobile">P5</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-yellow);">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">8</span></td>
+                            <td><strong>ALO</strong></td>
+                            <td>Aston Martin</td>
+                            <td>94.584s</td>
+                            <td>94.1s - 95.1s<span class="confidence-interval">±0.5s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">79.8%</span></td>
+                            <td class="hide-mobile">P12</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">High</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">9</span></td>
+                            <td><strong>STR</strong></td>
+                            <td>Aston Martin</td>
+                            <td>95.118s</td>
+                            <td>94.6s - 95.6s<span class="confidence-interval">±0.5s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">76.2%</span></td>
+                            <td class="hide-mobile">P10</td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">High</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="position-badge">10</span></td>
+                            <td><strong>HUL</strong></td>
+                            <td>Haas F1 Team</td>
+                            <td>95.345s</td>
+                            <td>94.8s - 95.9s<span class="confidence-interval">±0.55s</span></td>
+                            <td class="hide-mobile"><span style="color: var(--accent-orange);">73.6%</span></td>
+                            <td class="hide-mobile">P13</td>
+                            <td class="hide-mobile"><span style="color: var(--f1-red);">Very High</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced 3D Track Visualization
+        let trackView = 'overview';
+
+        function initTrack3D() {
+            const canvas = document.getElementById('trackCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            function drawTrack() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Track background
+                ctx.fillStyle = 'rgba(0, 144, 255, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Main track outline (Red Bull Ring)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radiusX = Math.min(canvas.width, canvas.height) * 0.35;
+                const radiusY = Math.min(canvas.width, canvas.height) * 0.25;
+                
+                ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Hotspots based on current view
+                if (trackView === 'overview') {
+                    drawHotspots(ctx, centerX, centerY, radiusX, radiusY);
+                } else if (trackView === 'sectors') {
+                    drawSectors(ctx, centerX, centerY, radiusX, radiusY);
+                } else if (trackView === 'telemetry') {
+                    drawTelemetry(ctx, centerX, centerY, radiusX, radiusY);
+                }
+                
+                // Start/finish line
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(centerX + radiusX - 20, centerY - 10);
+                ctx.lineTo(centerX + radiusX - 20, centerY + 10);
+                ctx.stroke();
+                
+                // Add labels
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('START/FINISH', centerX + radiusX - 20, centerY + 30);
+            }
+            
+            function drawHotspots(ctx, centerX, centerY, radiusX, radiusY) {
+                const hotspots = [
+                    { x: centerX + radiusX * 0.8, y: centerY - radiusY * 0.3, color: '#ff0000', label: 'T1' },
+                    { x: centerX - radiusX * 0.2, y: centerY - radiusY * 0.8, color: '#ffff00', label: 'T3' },
+                    { x: centerX - radiusX * 0.8, y: centerY + radiusY * 0.2, color: '#00ff00', label: 'T4' }
+                ];
+                
+                hotspots.forEach(spot => {
+                    ctx.fillStyle = spot.color;
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.arc(spot.x, spot.y, 15, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(spot.label, spot.x, spot.y + 4);
+                });
+            }
+            
+            function drawSectors(ctx, centerX, centerY, radiusX, radiusY) {
+                ctx.strokeStyle = '#00d464';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + radiusX, centerY);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX - radiusX * 0.5, centerY - radiusY);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX - radiusX * 0.5, centerY + radiusY);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+            }
+            
+            function drawTelemetry(ctx, centerX, centerY, radiusX, radiusY) {
+                const speedPoints = [
+                    { angle: 0, speed: 95, color: '#ff0000' },
+                    { angle: Math.PI / 4, speed: 75, color: '#ffff00' },
+                    { angle: Math.PI / 2, speed: 60, color: '#00ff00' },
+                    { angle: 3 * Math.PI / 4, speed: 85, color: '#00ffff' },
+                    { angle: Math.PI, speed: 90, color: '#ff00ff' },
+                    { angle: 5 * Math.PI / 4, speed: 70, color: '#ffff00' },
+                    { angle: 3 * Math.PI / 2, speed: 55, color: '#00ff00' },
+                    { angle: 7 * Math.PI / 4, speed: 88, color: '#00ffff' }
+                ];
+                
+                speedPoints.forEach(point => {
+                    const x = centerX + Math.cos(point.angle) * radiusX * 0.9;
+                    const y = centerY + Math.sin(point.angle) * radiusY * 0.9;
+                    const size = (point.speed / 100) * 20;
+                    
+                    ctx.fillStyle = point.color;
+                    ctx.globalAlpha = 0.6;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(point.speed + 'kph', x, y + 2);
+                });
+            }
+            
+            drawTrack();
+        }
+
+        function setTrackView(view) {
+            trackView = view;
+            document.querySelectorAll('.track-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            initTrack3D();
+        }
+
+        // Race Simulation
+        let raceSimulationActive = false;
+
+        function startRaceSimulation() {
+            if (raceSimulationActive) return;
+            raceSimulationActive = true;
+            
+            const cars = document.querySelectorAll('.race-car');
+            const positions = [85, 82, 80];
+            
+            cars.forEach((car, index) => {
+                setTimeout(() => {
+                    car.style.left = positions[index] + '%';
+                }, index * 500);
+            });
+            
+            setTimeout(() => {
+                raceSimulationActive = false;
+                showNotification('Race simulation complete! VER wins by 0.238s');
+            }, 3000);
+        }
+
+        function resetRaceSimulation() {
+            const cars = document.querySelectorAll('.race-car');
+            const startPositions = [5, 2, 0];
+            
+            cars.forEach((car, index) => {
+                car.style.left = startPositions[index] + '%';
+            });
+            raceSimulationActive = false;
+        }
+
+        // Custom Features
+        function setupCustomFeatures() {
+            const sliders = [
+                { id: 'tire-age', valueId: 'tire-age-value', suffix: '' },
+                { id: 'tire-compound', valueId: 'tire-compound-value', 
+                  options: ['Soft', 'Medium', 'Hard', 'Intermediate', 'Wet'] },
+                { id: 'degradation', valueId: 'degradation-value', suffix: '%' },
+                { id: 'track-evolution', valueId: 'track-evolution-value', suffix: '%' },
+                { id: 'fuel-load', valueId: 'fuel-load-value', suffix: 'kg' },
+                { id: 'drs-effect', valueId: 'drs-effect-value', suffix: '%' }
+            ];
+            
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                const valueElement = document.getElementById(slider.valueId);
+                
+                if (element && valueElement) {
+                    element.addEventListener('input', function() {
+                        let value = this.value;
+                        if (slider.options) {
+                            value = slider.options[parseInt(this.value) - 1];
+                        } else {
+                            value = value + slider.suffix;
+                        }
+                        valueElement.textContent = value;
+                    });
+                }
+            });
+        }
+
+        function applyCustomFeatures() {
+            showNotification('Custom features applied! Predictions updated with new parameters.');
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.classList.add('updating');
+                setTimeout(() => card.classList.remove('updating'), 2000);
+            });
+        }
+
+        function resetCustomFeatures() {
+            document.getElementById('tire-age').value = 15;
+            document.getElementById('tire-compound').value = 3;
+            document.getElementById('degradation').value = 2.1;
+            document.getElementById('track-evolution').value = 75;
+            document.getElementById('fuel-load').value = 110;
+            document.getElementById('drs-effect').value = 85;
+            
+            document.getElementById('tire-age-value').textContent = '15';
+            document.getElementById('tire-compound-value').textContent = 'Medium';
+            document.getElementById('degradation-value').textContent = '2.1%';
+            document.getElementById('track-evolution-value').textContent = '75%';
+            document.getElementById('fuel-load-value').textContent = '110kg';
+            document.getElementById('drs-effect-value').textContent = '85%';
+            
+            showNotification('Features reset to default values');
+        }
+
+        // A/B Testing
+        function switchToModelB() {
+            showNotification('Switched to Model B (Aggressive). Predictions may be more volatile.');
+            document.querySelectorAll('.variant-badge').forEach(badge => {
+                if (badge.textContent === 'Current') {
+                    badge.textContent = 'Previous';
+                    badge.style.background = 'var(--f1-gray)';
+                } else if (badge.textContent === 'Testing') {
+                    badge.textContent = 'Current';
+                    badge.style.background = 'var(--accent-green)';
+                }
+            });
+        }
+
+        function runABTest() {
+            showNotification('A/B Test initiated. Collecting performance data...');
+            
+            setTimeout(() => {
+                showNotification('A/B Test complete. Model B shows 2.3% improvement in accuracy.');
+            }, 3000);
+        }
+
+        // Notification System
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            const contentDiv = notification.querySelector('.notification-content > div:last-child > div:first-child');
+            contentDiv.textContent = message;
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Live Updates Simulation
+        function simulateLiveUpdates() {
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    const updates = [
+                        'Weather conditions updated: Rain probability decreased to 12%',
+                        'Telemetry data: VER showing strong sector 2 times',
+                        'Track evolution: Grip levels increased by 3%',
+                        'Tire degradation models recalibrated',
+                        'New qualifying data integrated into predictions'
+                    ];
+                    
+                    const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+                    showNotification(randomUpdate);
+                    
+                    if (Math.random() > 0.5) {
+                        const cards = document.querySelectorAll('.model-card');
+                        const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                        randomCard.classList.add('pulse');
+                        setTimeout(() => randomCard.classList.remove('pulse'), 2000);
+                    }
+                }
+            }, 15000);
+        }
+
+        // Keyboard Shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case '1':
+                            e.preventDefault();
+                            setTrackView('overview');
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            setTrackView('sectors');
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            setTrackView('telemetry');
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            startRaceSimulation();
+                            break;
+                        case 'r':
+                            e.preventDefault();
+                            resetRaceSimulation();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Initialize everything
+        window.addEventListener('load', function() {
+            initTrack3D();
+            setupCustomFeatures();
+            setupKeyboardShortcuts();
+            
+            setTimeout(() => {
+                simulateLiveUpdates();
+            }, 5000);
+            
+            setTimeout(() => {
+                showNotification('F1 AI Predictor Pro loaded. Live updates enabled.');
+            }, 1000);
+        });
+
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                initTrack3D();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
