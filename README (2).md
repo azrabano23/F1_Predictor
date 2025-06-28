@@ -1,17 +1,10 @@
 # 🏎️ F1 AI Race Predictor Pro - Ultimate Edition
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen)](https://your-demo-link.com)
-[![Version](https://img.shields.io/badge/Version-2.0-blue)](https://github.com/yourusername/f1-ai-predictor)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![F1 Season](https://img.shields.io/badge/F1%20Season-2025-red)](https://formula1.com)
-
 > **The ultimate Formula 1 race prediction platform powered by advanced AI models, real-time telemetry, and comprehensive data analysis.**
 
 ## 🌟 Overview
 
 F1 AI Race Predictor Pro is a sophisticated web application that combines machine learning, real-time data feeds, and interactive visualizations to predict Formula 1 race outcomes with unprecedented accuracy. Built with cutting-edge web technologies and integrating multiple F1 data sources, this platform offers both professional-grade analysis tools and an engaging user experience.
-
-![F1 Predictor Dashboard](screenshots/dashboard.png)
 
 ## ✨ Key Features
 
@@ -43,13 +36,6 @@ F1 AI Race Predictor Pro is a sophisticated web application that combines machin
 - **Weather Impact Assessment**: Track temperature and conditions effects
 - **Historical Performance**: Driver and constructor form analysis
 - **Real-time Updates**: Auto-refresh every 30 seconds during live sessions
-
-### 🎨 Premium UI/UX
-- **F1-Inspired Design**: Official team colors and modern aesthetics
-- **Responsive Layout**: Optimized for desktop, tablet, and mobile
-- **Smooth Animations**: 60fps transitions and micro-interactions
-- **Dark Theme**: Eye-friendly design for extended use
-- **Accessibility**: WCAG compliant with semantic markup
 
 ## 🚀 Quick Start
 
@@ -133,25 +119,6 @@ const F1_APIs = {
 - **The Odds API**: Betting odds and market data
 - **F1 Live Timing**: Real-time session data
 
-## 📁 Project Structure
-
-```
-f1-ai-predictor/
-│
-├── index.html              # Main application file
-├── README.md               # This file
-├── LICENSE                 # MIT License
-├── screenshots/            # Application screenshots
-│   ├── dashboard.png
-│   ├── simulation.png
-│   └── predictions.png
-│
-└── docs/                   # Documentation
-    ├── API_GUIDE.md
-    ├── FEATURES.md
-    └── DEPLOYMENT.md
-```
-
 ## 🎯 Core Algorithms
 
 ### Prediction Model
@@ -199,31 +166,6 @@ const models = {
 };
 ```
 
-## 📱 Mobile Responsiveness
-
-- **Tablet (768px+)**: Full feature set with optimized layout
-- **Mobile (320px+)**: Simplified interface with essential features
-- **Touch Support**: Swipe gestures and touch-friendly controls
-- **PWA Ready**: Add to home screen capability
-
-## 🔒 Performance & Security
-
-### Performance Optimizations
-- **Lazy Loading**: Feature importance bars animate on scroll
-- **Debounced Updates**: Real-time predictions throttled to 200ms
-- **Memory Management**: Cleanup intervals and event listeners
-- **CDN Assets**: External resources from reliable CDNs
-
-### Security Features
-- **API Key Management**: Client-side keys for demo only
-- **XSS Protection**: Sanitized data inputs
-- **CORS Handling**: Proper cross-origin resource sharing
-- **Rate Limiting**: Built-in API request throttling
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
 ### Development Setup
 ```bash
 # Fork the repository
@@ -247,53 +189,11 @@ git push origin feature/amazing-feature
 - 📱 **Mobile App**: React Native or Flutter version
 - 🌐 **Internationalization**: Multi-language support
 
-## 📈 Roadmap
-
-### Version 2.1 (Q3 2025)
-- [ ] Real-time telemetry visualization
-- [ ] Driver comparison matrices
-- [ ] Historical race replay mode
-- [ ] Enhanced mobile experience
-
-### Version 2.2 (Q4 2025)
-- [ ] Machine learning model training interface
-- [ ] Championship probability calculations
-- [ ] Team radio integration
-- [ ] 3D track visualization
-
-### Version 3.0 (2026)
-- [ ] Live commentary AI
-- [ ] Augmented reality features
-- [ ] Voice control interface
-- [ ] Professional analytics dashboard
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - **Formula 1**: For the amazing sport and inspiration
 - **Ergast API**: For comprehensive F1 historical data
 - **OpenF1 Project**: For real-time data standards
 - **F1 Community**: For feedback and feature requests
-- **Web Standards**: For enabling modern browser capabilities
-
-## 📞 Support & Contact
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/f1-ai-predictor/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/f1-ai-predictor/discussions)
-- **Email**: your.email@domain.com
-- **Twitter**: [@yourusername](https://twitter.com/yourusername)
-
----
-
-<div align="center">
-
-**⭐ Star this repository if you found it helpful! ⭐**
-
-[Live Demo](https://your-demo-link.com) • [Documentation](docs/) • [Report Bug](issues/) • [Request Feature](issues/)
 
 *Built with ❤️ for the F1 community*
-
-</div>
